@@ -14,7 +14,6 @@ x_start = 300
 x_stop = 500
 y_start = 250
 y_stop = 850
-
 roi_length = 20
 
 def get_diffraction_efficiency(img, x_start, x_stop, y_start, y_stop, roi_length):
@@ -23,17 +22,16 @@ def get_diffraction_efficiency(img, x_start, x_stop, y_start, y_stop, roi_length
     plt.imshow(img_matrix, cmap='viridis')
 
     maxima = peak_local_max(img_matrix, min_distance=50)
-    maxima = maxima[np.argsort(maxima[:, 1])]
 
-    print(maxima)
+    span_y = np.ptp(maxima[:, 0])
+    span_x = np.ptp(maxima[:, 1])
+    sort_col = 1 if span_x >= span_y else 0
 
-    y0, x0 = maxima[0]
-    y1, x1 = maxima[-1]
+    maxima = maxima[np.argsort(maxima[:, sort_col])]
 
-    print(x0, y0)
-    print(x1, y1)
+    y0, x0, y1, x1 = extend_plot_line(maxima[0], maxima[-1], 50)
 
-    plt.plot([x0, x1], [y0, y1], 'b-', linewidth=.3)
+    plt.plot([x0, x1], [y0, y1], '-', c="lightblue", linewidth=.3)
 
     intensities = np.array([])
     for maximum in maxima:
@@ -60,8 +58,6 @@ def get_diffraction_efficiency(img, x_start, x_stop, y_start, y_stop, roi_length
     plt.show()
     plt.close()
 
-    y0, x0 = maxima[0]
-    y1, x1 = maxima[-1]
     num = 1000
     x, y = np.linspace(x0, x1, num), np.linspace(y0, y1, num)
     zi = ndi.map_coordinates(img_matrix, np.vstack((y,x)))
@@ -69,6 +65,21 @@ def get_diffraction_efficiency(img, x_start, x_stop, y_start, y_stop, roi_length
     plt.plot(zi)
     plt.show()
     plt.close()
+
+def extend_plot_line(p1: list, p2: list, width: int):
+    assert len(p1) == len(p2) == 2
+
+    alpha = np.arctan2((p2[0]-p1[0]), (p2[1]-p1[1]))
+    delta_y = np.sin(alpha)*width
+    delta_x = np.cos(alpha)*width
+
+    y0 = p1[0]-delta_y
+    x0 = p1[1]-delta_x
+    y1 = p2[0]+delta_y
+    x1 = p2[1]+delta_x
+
+    return y0, x0, y1, x1
+
 
 
 get_diffraction_efficiency(img, x_start, x_stop, y_start, y_stop, roi_length)
