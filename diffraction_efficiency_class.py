@@ -26,7 +26,7 @@ class DiffractionEfficiency(object):
 
         self.__maxima = maxima[np.argsort(maxima[:, sort_col])]
 
-        for maximum in maxima:
+        for maximum in self.__maxima:
             roi_x_start = maximum[1] - self.__roi_length
             roi_x_stop = maximum[1] + self.__roi_length
             roi_y_start = maximum[0] - self.__roi_length
